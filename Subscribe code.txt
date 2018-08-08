@@ -1,0 +1,63 @@
+#include<ESP8266WiFi.h>
+#include "Adafruit_MQTT_Client.h"
+
+#define wifi "Merin Ann"
+
+#define password "annmerin3"
+#define server "io.Adafruit.com"
+
+#define port 1883
+#define username "the129"
+#define key "23fab48cbfc349bd98c99a7040796608"
+
+WiFiClient esp;
+Adafruit_MQTT_Client mqtt(&esp,server,port,username,key);
+Adafruit_MQTT_Subscribe feed= Adafruit_MQTT_Subscribe(&mqtt,username"/feeds/ldr");
+
+#define led 16
+void setup() {
+  Serial.begin(115200);
+  delay(10);
+  Serial.println("Adafruit MQTT");
+  Serial.print("Connecting to ");
+  Serial.println(wifi);
+  WiFi.begin(wifi,password);
+  pinMode(led,OUTPUT);
+  while(WiFi.status()!=WL_CONNECTED)
+  {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("WiFi connected");
+  Serial.println("IP address:");
+  Serial.println(WiFi.localIP());
+  mqtt.subscribe(&feed);
+  Serial.print("Connecting to MQTT");
+  while(mqtt.connect())
+  {
+    delay(500);
+    Serial.print(".");
+  }
+
+}
+
+void loop() {
+  
+  if(mqtt.readSubscription(5000))
+  {
+    Serial.print("Got");
+    Serial.print((char *)feed.lastread);
+    int a=atoi((char *)feed.lastread);
+    Serial.print(" ");
+    Serial.println(a);
+    if (a==0)
+    {
+      digitalWrite(led,0);
+    }
+    else
+    {
+      digitalWrite(led,1);
+    }
+  }
+
+}
